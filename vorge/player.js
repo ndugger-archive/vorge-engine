@@ -33,7 +33,7 @@ vorge.player = function(w, h, s) {
 		);
 	};
 	
-	this.update = function(fps) {
+	this.update = function(map) {
 		
 		if (vorge.controls.left && this.x >= 0) {
 			this.x -= this.s;

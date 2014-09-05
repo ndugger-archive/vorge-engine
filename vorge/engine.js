@@ -103,6 +103,9 @@ vorge = {
 	},
 	
 	update: function(game, canvas) {
+		
+		game.player.update(game.map);
+		
 		var i = 0, count = game.components.length;
 		while (i < count) {
 			game.components[i].draw(canvas);
