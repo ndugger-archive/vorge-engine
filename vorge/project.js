@@ -4,6 +4,8 @@ vorge.project = function(project) {
 	
 	this.slug = project.slug;
 	
+	this.path = project.path;
+	
 	this.canvas = project.canvas;
 	
 	this.save = function(data, url) {

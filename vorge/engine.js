@@ -17,9 +17,10 @@ vorge = {
 		// Load Vorge dependancies
 		// ==============================
 		
-		var dependancies = [];
+		var dependencies = [];
 		var depNames = [
 			"project",
+			"resource",
 			"map",
 			"event",
 			"controls",
@@ -28,44 +29,109 @@ vorge = {
 		];
 		
 		depNames.forEach(function(name) {
-			var dependancy = new vorge.dependancy(project.path, name);
-			dependancies.push(dependancy.load);
+			var dependency = new vorge.dependency(project.path, name);
+			dependencies.push(dependency.load);
 		});
 		
-		Promise.all(dependancies).then(function() {
+		Promise.all(dependencies).then(function() {
 			
-			var game = new vorge.project(project);
+			vorge.game = new vorge.project(project);
+			vorge.game.assets = vorge.game.path + "/" + vorge.game.slug + "/assets";
+			vorge.game.maps = vorge.game.path + "/" + vorge.game.slug + "/maps";
 			
 			var canvas = document.createElement("canvas");
-			canvas.width = game.canvas.width;
-			canvas.height = game.canvas.height;
+			canvas.width = vorge.game.canvas.width;
+			canvas.height = vorge.game.canvas.height;
 			
 			document.body.insertBefore(canvas, vorge.self);
 			
-			vorge.load(game, canvas);
+			vorge.load.data(vorge.game, canvas);
 			
 		});
 		
 	},
 	
-	dependancy: function(path, name) {
+	dependency: function(path, name) {
 		
-		var dependancy = this;
+		var dependency = this;
 		
-		dependancy.script = document.createElement("script");
-		dependancy.script.src = path + "/vorge/" + name + ".js";
+		dependency.script = document.createElement("script");
+		dependency.script.src = path + "/vorge/" + name + ".js";
 		
-		document.body.appendChild(dependancy.script);
+		document.body.appendChild(dependency.script);
 		
 		this.load = new Promise(function(resolve, reject) {
-			dependancy.script.onload = function() {
+			dependency.script.onload = function() {
 				resolve();
 			};
 		});
 		
 	},
 	
-	load: function(game, canvas) {
+	load: {
+		
+		// Used if user does not have save data:
+		primary: function(primary) {
+			
+			vorge.game.data = primary;
+			localStorage.setItem(vorge.game.slug, JSON.stringify(primary));
+			
+		},
+		
+		data: function(game, canvas) {
+			
+			if (!localStorage.getItem(vorge.game.slug)) {
+				var primary = new vorge.resource(
+					"script", game.path + "/" + game.slug + "/primary.js",
+					game.slug + "Primary"
+				);
+				primary.load.then(function() {
+					vorge.load.data(game, canvas);
+				});
+				return;
+			} else {
+				game.data = JSON.parse(localStorage.getItem(game.slug));
+			}
+			
+			var map = new vorge.resource(
+				"script", game.maps + "/" + game.data.map + ".js",
+				game.slug + "Map"
+			);
+			
+			vorge.load.player(game.data.player);
+			
+			map.load.then(function() {
+				
+				var components = [];
+				components.push(game.map.load);
+				components.push(game.player.load);
+				
+				Promise.all(components).then(function(components) {
+					
+					game.components = components;
+					
+					vorge.play(game, canvas);
+					
+				})
+				
+			})
+			
+		},
+		
+		map: function(map) {
+			vorge.game.map = new vorge.map(map, vorge.game);
+		},
+		
+		player: function(player) {
+			vorge.game.player = new vorge.player(
+				player.w, player.h,
+				player.pos.x, player.pos.y
+			);
+		}
+		
+	},
+	
+	/*load: function(game, canvas) {
 		
 		// ==============================
 		// load savefile/data here...
@@ -100,7 +166,7 @@ vorge = {
 			vorge.play(game, canvas);
 		});
 		
-	},
+	},*/
 	
 	update: function(game, canvas) {
 		

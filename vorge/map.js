@@ -1,6 +1,45 @@
-vorge.map = function(id) {
+vorge.map = function(map, game) {
 	
-	var map = this;
+	this.name = map.name;
+	
+	this.width = map.width;
+	this.height = map.height;
+	
+	this.events = map.events;
+	
+	this.grid = map.grid;
+	
+	this.tiles = map.tiles;
+	
+	this.tileset = new Image();
+	this.tileset.src = game.assets + "/tilesets/" + map.tileset;
+	
+	var self = this;
+	
+	this.load = new Promise(function(resolve, reject) {
+		self.tileset.onload = function() {
+			resolve(self);
+		};
+	});
+	
+	this.draw = function(canvas) {
+		var ctx = canvas.getContext("2d");
+		var map = this;
+		var i = 0, count = map.tiles.length;
+		while (i < count) {
+			var tile = map.tiles[i];
+			if (tile.x < canvas.width && tile.y < canvas.height) {
+				ctx.drawImage(
+					this.tileset, 
+					tile.imgx, tile.imgy, tile.w, tile.h,
+					tile.x, tile.y, tile.w, tile.h
+				);
+			};
+			i++;
+		};
+	};
+	
+	/*var map = this;
 	
 	// TODO: load a real map later
 		
@@ -71,6 +110,6 @@ vorge.map = function(id) {
 			};
 			i++;
 		};
-	};
+	};*/
 	
 };

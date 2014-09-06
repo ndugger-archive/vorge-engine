@@ -1,4 +1,4 @@
-vorge.player = function(w, h, s) {
+vorge.player = function(w, h, x, y, s) {
 	
 	var player = this;
 	
@@ -7,15 +7,13 @@ vorge.player = function(w, h, s) {
 	this.height = h;
 	
 	// Walking speed
-	this.s = s;
+	this.s = s || 1;
+	
+	this.x = x;
+	this.y = y;
 	
 	this.sprite = new Image();
 	this.sprite.src = "vorge/spriteNull.png";
-	
-	player.spawn = function(x, y) {
-		player.x = x;
-		player.y = y;
-	}
 	
 	// Yay promises!
 	this.load = new Promise(function(resolve, reject) {
