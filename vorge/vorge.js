@@ -9,6 +9,15 @@ var vorge = {
 		this.canvas.width = config.canvas.width;
 		this.canvas.height = config.canvas.height;
 		
+		this.keyConfig = config.controls;
+		
+		this.keypress = {
+			left: false,
+			up: false,
+			right: false,
+			down: false
+		};
+		
 		var self = this;
 		
 		this.load = function(scene) {
@@ -17,17 +26,21 @@ var vorge = {
 			
 			scene.map.tileset.load.then(function() {
 				
-				var events = [];
-				
-				var i = 0, count = scene.events.length;
-				while (i < count) {
-					events.push(scene.events[i].sprite.load);
-					i++;
-				};
-				
-				Promise.all(events).then(function() {
+				scene.player.sprite.load.then(function() {
 					
-					self.play(scene);
+					var events = [];
+
+					var i = 0, count = scene.events.length;
+					while (i < count) {
+						events.push(scene.events[i].sprite.load);
+						i++;
+					};
+
+					Promise.all(events).then(function() {
+
+						self.play(scene);
+
+					});
 					
 				});
 				
@@ -35,9 +48,62 @@ var vorge = {
 			
 		};
 		
+		this.controls = function() {
+			
+			var game = self;
+			var controls = this.keyConfig;
+		
+			window.addEventListener("keydown", function(e) {
+				switch(e.keyCode) {
+
+					case controls.left:
+						game.keypress.left = true;
+						break;
+
+					case controls.up:
+						game.keypress.up = true;
+						break;
+
+					case controls.right:
+						game.keypress.right = true;
+						break;
+
+					case controls.down:
+						game.keypress.down = true;
+						break;
+
+				};
+			});
+
+			window.addEventListener("keyup", function(e) {
+				switch(e.keyCode) {
+
+					case controls.left:
+						game.keypress.left = false;
+						break;
+
+					case controls.up:
+						game.keypress.up = false;
+						break;
+
+					case controls.right:
+						game.keypress.right = false;
+						break;
+
+					case controls.down:
+						game.keypress.down = false;
+						break;
+
+				};
+			});
+
+		};
+		
 		this.play = function(scene) {
 			
 			scene.events[0].activate();
+			
+			this.controls();
 			
 			this.loop.start(scene);
 			
@@ -54,8 +120,11 @@ var vorge = {
 			iterate: function(loop, scene) {
 				return requestAnimationFrame(function() {
 					
-					loop.draw(scene);
+					var ctx = self.canvas.getContext("2d");
+					ctx.clearRect(0, 0, self.canvas.width, self.canvas.height);
+					
 					loop.update(scene);
+					loop.draw(scene);
 					
 				});
 			},
@@ -70,6 +139,12 @@ var vorge = {
 						tile.draw(scene.map.tileset.elem, self.canvas);
 						i++;
 					};
+				})();
+				
+				// Player:
+				(function() {
+					var player = scene.player;
+					player.self.draw(player.sprite.elem, self.canvas);
 				})();
 				
 				// Events:
@@ -90,7 +165,10 @@ var vorge = {
 			update: function(scene) {
 				
 				// Player:
-				// update player
+				(function() {
+					var player = scene.player;
+					player.update(self.keypress);
+				})();
 				
 				// Events:
 				(function() {
@@ -105,6 +183,37 @@ var vorge = {
 				this.iterate(this, scene);
 				
 			}
+			
+		}
+		
+	},
+	
+	player: function(player) {
+		
+		this.sprite = player.sprite;
+		
+		this.self = player.self;
+		
+		var player = this;
+		
+		this.update = function(controls) {
+			
+			if (controls.left) {
+				player.self.x--;
+				player.self.img.y = player.self.height;
+			};
+			if (controls.up) {
+				player.self.y--;
+				player.self.img.y = player.self.height * 3;
+			};
+			if (controls.right) {
+				player.self.x++;
+				player.self.img.y = player.self.height * 2;
+			};
+			if (controls.down) {
+				player.self.y++;
+				player.self.img.y = 0;
+			};
 			
 		}
 		
@@ -174,10 +283,27 @@ var vorge = {
 			)
 		}
 		
+	},
+	
+	fn: {
+		
+		dialogue: function(name, lines) {
+			var i = 0, count = lines.length;
+			for (i; i < count; i++) {
+				console.log(name + ": " + lines[i]);
+			}
+		},
+		
+		options: function(options) {
+			var i = 0, count = options.length;
+			for (i; i < count; i++) {
+				console.log("(" + i + "): " + options[i][0]);
+				options[i][1].call();
+			};
+		}
+		
 	}
 	
+	
+	
 };
-
-vorge.event.prototype = {
-	foo: "bar"
-}
