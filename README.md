@@ -11,6 +11,8 @@ This is still in *extremely* early development. Nothing special to see, yet...
 The **foo** file/directory is a fake project, used for development.
 
 ---
+![current vorge progress](https://hostr.co/file/ZyvBIj4i8bvq/vorgecanvas.png)
+---
 
 **Currently working on:**
 - Refining the movement/controls system
